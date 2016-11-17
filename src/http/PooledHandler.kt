@@ -36,6 +36,8 @@ constructor(private val pool: ThreadPool,
                 handler.handle(requestBuffer.array(), sw)
                 socketChannel.write(wrap((sw.toString() as java.lang.String).bytes))
             }
+        } else if(readCount < 0) {
+            socketChannel.close()
         }
     }
 

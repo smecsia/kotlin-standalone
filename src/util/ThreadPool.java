@@ -1,7 +1,5 @@
 package util;
 
-import java.util.concurrent.BlockingQueue;
-
 /**
  * Primitive fixed size thread pool
  */
@@ -12,7 +10,7 @@ public class ThreadPool {
 
     public ThreadPool(int poolSize) {
         threads = new PooledThread[poolSize];
-        queue = new LinkedBlockingQueue<>();
+        queue = new BlockingQueue<>(1000);
         for (int i = 0; i < poolSize; ++i) {
             threads[i] = new PooledThread();
             threads[i].start();
@@ -20,7 +18,11 @@ public class ThreadPool {
     }
 
     synchronized public void execute(Runnable job) {
-        queue.offer(job);
+        try {
+            queue.offer(job);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class PooledThread extends Thread {

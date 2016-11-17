@@ -9,7 +9,8 @@ static platform() {
 }
 
 static arch() {
-    System.getProperty("os.arch")
+    final s = System.getProperty("os.arch")
+    s == "amd64" ? "x86_64" : s
 }
 
 static java_home() {
@@ -26,7 +27,7 @@ def avianBuildDir(File buildDir) {
 
 task standalone(dependsOn: 'shadowJar') {
     doLast {
-        if(!file("${buildDir}/avian").exists()){
+        if (!file("${buildDir}/avian").exists()) {
             exec {
                 commandLine 'git', 'clone', 'https://github.com/ReadyTalk/avian.git', "${buildDir}/avian"
             }
@@ -72,7 +73,7 @@ task standalone(dependsOn: 'shadowJar') {
         }
         exec {
             workingDir "${buildDir}/all"
-            commandLine '/bin/bash', '-c', "/usr/local/bin/g++ -rdynamic *.o -ldl -lpthread -lz -o ${project.name} -framework CoreFoundation"
+            commandLine '/bin/bash', '-c', "g++ -rdynamic *.o -ldl -lpthread -lz -o ${project.name} ${platform() == "macosx" ? '-framework CoreFoundation' : ''}"
         }
         exec {
             workingDir "${buildDir}/all"

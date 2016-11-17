@@ -21,8 +21,9 @@ self-contained application file less than 4Mb in size.
 
 ## Drawbacks
 
-There is a `src/util` directory containing parts of a standard jdk source files + primitive thread pool implementation.
-The reason for this is that Avian does not implement many parts of a Java standard library.
+There is a `src/util` directory containing the primitive thread pool and blocking queue implementations, that
+should be easily found within the java standard library. The reason for this is that Avian does not implement 
+many parts of jdk and we have to "reinvent a wheel" for some features.
 
 ## Advanced settings
 
@@ -39,3 +40,8 @@ in the respective properties within `gradle.properties` file:
 OPEN_JDK_PATH=/absolute/path/to/openjdk/distribution
 OPEN_JDK_SRC_PATH=/absolute/path/to/openjdk/source/code
 ```
+
+## Drawbacks
+
+* The proven compatible version of OpenJDK is openjdk-7u111 (as of November 2016). Not sure if others will work as well.
+* The resulting size of a self-contained file will be tens of megabytes instead of a few.

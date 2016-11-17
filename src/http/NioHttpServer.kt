@@ -45,8 +45,13 @@ constructor(host: String = "0.0.0.0", port: Int = 8080,
     }
 
     private fun dispatch(key: SelectionKey) {
-        if (key.attachment() != null) {
-            (key.attachment() as Runnable).run()
+        when (key.attachment()) {
+            is Acceptor -> {
+                if (key.isAcceptable) {
+                    (key.attachment() as Acceptor).run()
+                }
+            }
+            else -> (key.attachment() as Runnable).run()
         }
     }
 
