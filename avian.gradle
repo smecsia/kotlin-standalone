@@ -1,0 +1,88 @@
+static platform() {
+    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        'linux'
+    } else if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        'windows'
+    } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+        'macosx'
+    }
+}
+
+static arch() {
+    System.getProperty("os.arch")
+}
+
+static java_home() {
+    System.properties.'java.home'
+}
+
+def avianBuildDir(File buildDir) {
+    if (OPEN_JDK_SRC_PATH) {
+        "${buildDir}/avian/build/${platform()}-${arch()}-tails-openjdk-src"
+    } else {
+        "${buildDir}/avian/build/${platform()}-${arch()}-tails${OPEN_JDK_PATH ? '-openjdk' : ''}"
+    }
+}
+
+task standalone(dependsOn: 'shadowJar') {
+    doLast {
+        if(!file("${buildDir}/avian").exists()){
+            exec {
+                commandLine 'git', 'clone', 'https://github.com/ReadyTalk/avian.git', "${buildDir}/avian"
+            }
+        }
+        GFileUtils.deleteQuietly(file("${buildDir}/all"))
+        exec {
+            workingDir "${buildDir}/avian"
+            commandLine(*(['make', 'tails=true', "platform=${platform()}"] +
+                    (OPEN_JDK_PATH ? ["openjdk=${OPEN_JDK_PATH}"] : []) +
+                    (OPEN_JDK_SRC_PATH ? ["openjdk-src=${OPEN_JDK_SRC_PATH}"] : [])))
+        }
+        copy {
+            from zipTree(file("${buildDir}/libs/${project.name}-all.jar"))
+            into "${buildDir}/all"
+        }
+        exec {
+            workingDir "${buildDir}/all"
+            commandLine 'ar', 'x', "${avianBuildDir(buildDir)}/libavian.a"
+        }
+        copy {
+            from "${avianBuildDir(buildDir)}/classpath.jar"
+            into "${buildDir}/all"
+        }
+        GFileUtils.moveFile(file("${buildDir}/all/classpath.jar"), file("${buildDir}/all/boot.jar"))
+        file("${buildDir}/all").listFiles()
+                .findAll { it.name != 'boot.jar' && !it.name.endsWith('.o') }.each { f ->
+            exec {
+                workingDir "${buildDir}/all"
+                commandLine 'jar', 'u0f', 'boot.jar', f.name
+            }
+        }
+        exec {
+            workingDir "${buildDir}/all"
+            commandLine "${avianBuildDir(buildDir)}/binaryToObject/binaryToObject", 'boot.jar', 'boot-jar.o', '_binary_boot_jar_start', '_binary_boot_jar_end', platform(), arch()
+        }
+        copy {
+            from "${rootDir}/src/embedded-jar-main.cpp"
+            into "${buildDir}/all"
+        }
+        exec {
+            workingDir "${buildDir}/all"
+            commandLine 'g++', "-I${java_home()}/../include", "-I${java_home()}/../include/darwin", '-D_JNI_IMPLEMENTATION_', '-c', 'embedded-jar-main.cpp', '-o', 'main.o'
+        }
+        exec {
+            workingDir "${buildDir}/all"
+            commandLine '/bin/bash', '-c', "/usr/local/bin/g++ -rdynamic *.o -ldl -lpthread -lz -o ${project.name} -framework CoreFoundation"
+        }
+        exec {
+            workingDir "${buildDir}/all"
+            commandLine 'strip', '-S', '-x', project.name
+        }
+        copy {
+            from "${buildDir}/all/${project.name}"
+            into "${buildDir}"
+        }
+    }
+}
+
+
