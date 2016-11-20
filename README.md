@@ -6,7 +6,8 @@ Kotlin+java.nio hello world http server example
 
 You will need the following environment to build the project:
 
-* JDK >= 1.7 (`jar`,`javac` in PATH)
+* OpenJDK >= 1.7 (`jar`,`javac` in PATH)
+* Ensure JAVA_HOME is pointing to the OpenJDK
 * Build tools (`make`,`gcc`,`g++` in PATH)
 * Bash (`bash` in PATH)
 
@@ -21,9 +22,11 @@ self-contained application file less than 4Mb in size.
 
 ## Drawbacks
 
-There is a `src/util` directory containing the primitive thread pool and blocking queue implementations, that
+* There is a `src/util` directory containing the primitive thread pool and blocking queue implementations, that
 should be easily found within the java standard library. The reason for this is that Avian does not implement 
 many parts of jdk and we have to "reinvent a wheel" for some features.
+* Performance is worse than with Oracle JDK. I believe this is because Oracle JDK is highly optimized in many
+ways.
 
 ## Advanced settings
 
