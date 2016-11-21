@@ -9,6 +9,7 @@ You will need the following environment to build the project:
 * OpenJDK >= 1.7 (`jar`,`javac` in PATH)
 * Ensure JAVA_HOME is pointing to the OpenJDK
 * Build tools (`make`,`gcc`,`g++` in PATH)
+* Git (`git` in PATH)
 * Bash (`bash` in PATH)
 
 ## How to build

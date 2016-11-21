@@ -1,4 +1,4 @@
-import http.HttpHandler
+
 import http.HttpHandler.Companion.httpHandler
 import http.NioHttpServer
 
@@ -13,7 +13,7 @@ val RESPONSE = "HTTP/1.1 200 OK\r\n" +
 fun main(args: Array<String>) {
     NioHttpServer(
             port = 5555,
-            threadsCount = 4,
+            threadsCount = 2,
             httpHandler = httpHandler { req, writer -> writer.write(RESPONSE) }
     ).run()
 }
